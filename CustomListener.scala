@@ -547,3 +547,57 @@ class CustomListener(conf: SparkConf) extends SparkListener {
     println(pretty(render(json)))
   }
 }
+
+/** Data Structures for storing received from listener events. */
+object UIData {
+
+  /**
+   * Data about a job.
+   *
+   * This is stored to track aggregated valus such as number of stages and tasks, and to track skipped and failed stages
+   */
+  class JobUIData(
+    var jobId: Int = -1,
+    var submissionTime: Option[Long] = None,
+    var completionTime: Option[Long] = None,
+    var stageIds: Seq[Int] = Seq.empty,
+    var jobGroup: Option[String] = None,
+    var status: JobExecutionStatus = JobExecutionStatus.UNKNOWN,
+    var numTasks: Int = 0,
+    var numActiveTasks: Int = 0,
+    var numCompletedTasks: Int = 0,
+    var numSkippedTasks: Int = 0,
+    var numFailedTasks: Int = 0,
+    var reasonToNumKilled: Map[String, Int] = Map.empty,
+    var numActiveStages: Int = 0,
+    // This needs to be a set instead of a simple count to prevent double-counting of rerun stages:
+    var completedStageIndices: mutable.HashSet[Int] = new mutable.HashSet[Int](),
+    var numSkippedStages: Int = 0,
+    var numFailedStages: Int = 0)
+
+  /**
+   * Data about a stage.
+   *
+   * This is stored to track aggregated valus such as number of tasks.
+   */
+  class StageUIData {
+    var numActiveTasks: Int = _
+    var numCompleteTasks: Int = _
+    var completedIndices = new HashSet[Int]()
+    var numFailedTasks: Int = _
+    var description: Option[String] = None
+  }
+  
+  /**
+   * Data about an executor.
+   *
+   * When an executor is removed, its number of cores is not available, so it is looked up here.
+   */
+  class ExecutorData {
+    var numCores: Int = _
+    var executorId: String = _
+    var timeAdded: Long = _
+    var timeRemoved: Long = _
+    var executorHost: String = _
+  }
+}
